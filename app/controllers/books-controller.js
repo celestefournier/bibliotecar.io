@@ -1,23 +1,23 @@
 'use strict';
+var mongoose = require('mongoose');
+var dbconfig = require('../../config/dbconfig.js');
+var model = require("../models/books-model");
+var bookModel = mongoose.model('book');
 
 /*
  * POST /book
  */
 exports.addBook = function(req, res) {
-  var mongoose = require('mongoose');
-  var dbconfig = require('../../config/dbconfig.js');
-  
   mongoose.Promise = global.Promise;
   mongoose.connect(dbconfig.host, { useNewUrlParser: true });  // Connect to MongoDB
   
   if (typeof req.body != 'object') {
-    var bookReq = JSON.parse(req.body);
+    var bookReq = JSON.parse(req.body.replace(/\t/g, ''));
   } else {
     var bookReq = req.body;
   }
 
-  const BookModel = mongoose.model('books', { title: String, description: String, isbn: String, language: String });
-  const book = new BookModel({
+  var book = bookModel({
     title: bookReq.title,
     description: bookReq.description,
     isbn: bookReq.isbn,
@@ -35,12 +35,15 @@ exports.addBook = function(req, res) {
 /*
  * GET /books/:id
  */
-exports.getBook = function(req, res) {
-  // var mongoose = require('mongoose');
-  // var dbconfig = require('../config/dbconfig.js');
-  
-  // mongoose.Promise = global.Promise;
-  // mongoose.connect(dbconfig.host, { useNewUrlParser: true });
+exports.getBook = function(req, res) {  
+  mongoose.Promise = global.Promise;
+  mongoose.connect(dbconfig.host, { useNewUrlParser: true });
+
+  bookModel.findOne({_id: req.params.id}, function (err, result) {
+    if (!err) {
+      res.json(result);
+    }
+  })
 };
 
 /*
